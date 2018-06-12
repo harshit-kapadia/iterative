@@ -157,9 +157,10 @@ int main(int argc, char *argv[])
   norm_initial_residual = sqrt(norm_initial_residual) ;
   // printf(" %lf \n", norm_initial_residual) ;
 
-  double *r, *p, *A_e, *temp, *x, *e, *A_p, *alpha_p, *alpha_A_p, *beta_p, *e_normA, *r_norm2 ;
+  double *r, *p, *A_e, *temp, *x, *e, *A_p, *alpha_p, *alpha_A_p, *beta_p ;
   double rho, beta, alpha ;
-  int m = 100000 ; /* arbitrary maximum iteration value, m>=1 */
+  double e_normA, r_norm2 ;
+  // int m = 100000 ; /* arbitrary maximum iteration value, m>=1 */
   r = (double*)malloc((M)*sizeof(double)) ;
   p = (double*)malloc((M)*sizeof(double)) ;
   A_e = (double*)malloc((M)*sizeof(double)) ;
@@ -170,27 +171,34 @@ int main(int argc, char *argv[])
   alpha_p = (double*)malloc((M)*sizeof(double)) ;
   alpha_A_p = (double*)malloc((M)*sizeof(double)) ;
   beta_p = (double*)malloc((M)*sizeof(double)) ;
-  e_normA = (double*)malloc((m)*sizeof(double)) ;
-  r_norm2 = (double*)malloc((m)*sizeof(double)) ;
+  // e_normA = (double*)malloc((m)*sizeof(double)) ;
+  // r_norm2 = (double*)malloc((m)*sizeof(double)) ;
 
   diff_vect(x,x_star,e,M) ; // e = x-x_star
   mat_vect_CSR_CSC(IA, JA, val, e, A_e, M) ;   /* Getting A_e = A*e */
-  e_normA[0] = dot_product(A_e,e,M) ; /* returns (A_e,e) */
-  e_normA[0] = sqrt(e_normA[0]) ;
+  e_normA = dot_product(A_e,e,M) ; /* returns (A_e,e) */
+  e_normA = sqrt(e_normA) ;
 
-  r_norm2[0] = norm_initial_residual ; // r_norm2 = (r,r)
+  r_norm2 = norm_initial_residual ; // r_norm2 = (r,r)
 
   copy_vect(x0,x,M) ; // copy x0 in x
   copy_vect(b,r,M) ; /* r0 = b - A*x0 = b - A*0 = b */
   copy_vect(r,p,M) ; /* p = r = r0 */
-  rho = norm_initial_residual ;
+  rho = norm_initial_residual * norm_initial_residual ;
 
-  beta = 10.0 ; /* arbitrary value > 1e-08 for 1st iteration of the loop */
-  int m_count = 0 ;
-  double tol = 1e-8 ;
+  // beta = 10.0 ; 
+  int iteration = 0 ;
+  double tol = 1e-8 , check = 1.0 ; /* arbitrary value > 1e-08 for 1st iteration of the loop */
 
-  while(beta > tol){
-    printf("\n Starting Iteration %d \n", m_count+1) ;
+  FILE *fp_cg ;
+  fp_cg = fopen("cg.txt", "w") ;
+  fprintf(fp_cg, "Iteration-index\t\te_normA\t\tr_norm2\n") ;
+  fprintf(fp_cg, "%d\t\t%.10lf\t\t%.10lf\n", iteration, e_normA, r_norm2) ;
+  fclose(fp_cg) ;
+
+  while(check > tol){
+    iteration += 1 ;
+    printf("\n Starting Iteration %d \n", iteration) ;
 
     mat_vect_CSR_CSC(IA, JA, val, p, A_p, M) ;
     alpha = dot_product(A_p, p, M) ;
@@ -201,8 +209,8 @@ int main(int argc, char *argv[])
 
     diff_vect(x, x_star, e, M) ; // e = x-x_star
     mat_vect_CSR_CSC(IA, JA, val, e, A_e, M) ;   /* Getting A_e = A*e */
-    e_normA[m_count+1] = dot_product(A_e, e, M) ; /* returns (A_e,e) */
-    e_normA[m_count+1] = sqrt(e_normA[m_count+1]) ;
+    e_normA = dot_product(A_e, e, M) ; /* returns (A_e,e) */
+    e_normA = sqrt(e_normA) ;
 
     scalar_vector(alpha, A_p, alpha_A_p, M) ; // computes alpha*A*p
     diff_vect(r, alpha_A_p, r, M) ;
@@ -211,13 +219,39 @@ int main(int argc, char *argv[])
     rho = dot_product(r, r, M) ;
     beta = rho / beta ;
 
-    r_norm2[m_count+1] = sqrt(rho) ;
+    r_norm2 = sqrt(rho) ;
 
     scalar_vector(beta, p, beta_p, M) ; // computes beta*p
     sum_vect(r, beta_p, p, M) ;
 
-    m_count += 1 ;
+    fp_cg = fopen("cg.txt", "a") ;
+    fprintf(fp_cg, "%d\t\t%.10lf\t\t%.10lf\n", iteration, e_normA, r_norm2) ;
+    fclose(fp_cg) ;
+
+    check = r_norm2 / norm_initial_residual ;
+    printf("check : %.10lf", check) ;
   }
+
+  printf("Final iteration number is %d.", iteration) ;
+
+  free(r);
+  free(p);
+  free(A_e);
+  free(temp);
+  free(x);
+  free(e);
+  free(A_p);
+  free(alpha_p);
+  free(alpha_A_p);
+  free(beta_p);
+  free(x0);
+  free(b);
+  free(x_star);
+  free(IA);
+  free(JA);
+  free(I);
+  free(J);
+  free(val);
 
   return 0;
 }
