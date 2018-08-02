@@ -1,1 +1,5 @@
+# C extensions
 *.out
+
+# Linux default autosave extension for MATLAB
+*.m~
