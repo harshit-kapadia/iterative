@@ -1,6 +1,6 @@
-function e_l = MG(l,u,f,gamma,nu_1,nu_2,N)
+function u = MG(l,u,f,gamma,nu_1,nu_2,N)
 % Multigrid Algorithm
-u = GS(u,f,nu_1,N) ; % smoothing and overwriting u_l
+u = GS(u,f,nu_1,N) ; % smoothing and overwriting u
 r = residual(u,f,N) ;
 r_c = RESTR(r,N/2) ;
 
