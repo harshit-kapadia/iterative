@@ -23,18 +23,14 @@ int main(int argc, char *argv[])
 	int i ;
 	double *q = malloc(M * sizeof(double));
 
-	// for (i = 0; i < M; i++)
-	// {
-	// 	q[i] = 1.0 / sqrt(M);
-	// }
-	// printf("Power Iteration: max. eigenvalue = %.10lf\n\n", power_iteration(IA, JA, val, q, M));
-
 	for (i = 0; i < M; i++)
 	{
 		q[i] = 1.0 / sqrt(M);
 	}
-	printf("Lanczos: max. eigenvalue = %.10lf\n\n", lanczos(IA, JA, val, q, M, 100));
 
+	/* Uncomment Power Iteration OR Lanczos method line, as needed */
+	// printf("Power Iteration: max. eigenvalue = %.10lf\n\n", power_iteration(IA, JA, val, q, M));
+	printf("Lanczos: max. eigenvalue = %.10lf\n\n", lanczos(IA, JA, val, q, M, 100));
 
 	free(IA);
 	free(JA);

@@ -25,20 +25,21 @@ double lanczos(int *IA, int *JA, double *valA, double *q, int M, int dim);
 double power_iteration(int *IA, int *JA, double *valA, double *q, int M)
 {
 	int i;
-	double tol = 1e-10; /* change tolerance for Lanczos method, as needed */
+	double tol = 1e-10; /* change tolerance for Lanczos method, as needed (else 1e-8 for STEP-1) */
 	double z_norm, eig = 0.0, eig_old = 0.0, res = 1.0;
 
 	double *z = malloc(M * sizeof(double));
 
-	double eig_true = 9598.6080894852857;
+	double eig_true = 9598.6080894852857; /* max. eigenvalue of s3rmt3m3.mtx */
 
-	FILE *f1;
-	f1 = fopen("power-iteration.txt", "w");
-	fprintf(f1, "Iteration\t\tResidual\n");
+	/* Comment file creation when timing */
+	// FILE *f1;
+	// f1 = fopen("power-iteration.txt", "w");
+	// fprintf(f1, "Iteration\t\tResidual\n");
 
 	int iteration = 1;
 
-	//clock_t start = clock();
+	// clock_t start = clock(); /* Comment when timing for Lanczos method */
 
 	// needed only for iteration=1; so writing outside while to reduce one if() statement
 	for (i = 0; i < M; ++i)
@@ -46,7 +47,7 @@ double power_iteration(int *IA, int *JA, double *valA, double *q, int M)
 	mat_vect_CSR_CSC(IA, JA, valA, q, z, M); /* Getting z = A*q */
 
 	while (res > tol)	{
-	//while (iteration <= 5000) {   /* useful for step */
+	// while (iteration <= 5000) {   /* useful for STEP-2 */
 
 		z_norm = norm(z, M);
 
@@ -58,17 +59,17 @@ double power_iteration(int *IA, int *JA, double *valA, double *q, int M)
 
 		mat_vect_CSR_CSC(IA, JA, valA, q, z, M); /* Getting z = A*q */
 
-		eig_old = eig;
+		eig_old = eig; /* only comment when running for some iterations and want to time */
 		eig = dot_product(q, z, M); /* computing ( q^T * (A*q) ) */
 
-		res = fabs(eig - eig_old);
+		res = fabs(eig - eig_old); /* only comment when running for some iterations and want to time */
 
-		fprintf(f1, "%d\t\t%e\n", iteration, res);
+		// fprintf(f1, "%d\t\t%e\n", iteration, res); /* Comment file print when timing */
 		iteration++;
 	}
 
-	//clock_t end = clock();
-	//printf("time : %e\t error: %e\n", (end - start)/(double)CLOCKS_PER_SEC, eig_true - eig);
+	// clock_t end = clock(); /* Comment when timing for Lanczos method */
+	// printf("Power Iteration time : %e\t error: %e\n", (end - start)/(double)CLOCKS_PER_SEC, eig_true - eig);
 
 	free(z);
 
@@ -92,7 +93,7 @@ double lanczos(int *IA, int *JA, double *valA, double *q, int M, int dim)
 	int *IT = malloc((dim + 1) * sizeof(int));
 	int *JT = malloc((2 * dim - 1) * sizeof(int));
 
-	double eig_true = 9598.6080894852857;
+	double eig_true = 9598.6080894852857; /* max. eigenvalue of s3rmt3m3.mtx */
 
 
 	for (i = 0; i < M; ++i)
@@ -156,6 +157,7 @@ double lanczos(int *IA, int *JA, double *valA, double *q, int M, int dim)
 	}
 	IT[dim] = 2*dim-1 ; /* last entry in IT */
 
+	/* For testing */
 	// printf("\n IT : \n");
 	// print_vector_int(IT, dim+1);
 
@@ -165,7 +167,7 @@ double lanczos(int *IA, int *JA, double *valA, double *q, int M, int dim)
 	// printf("\n val : \n");
 	// print_vector_double(val, (2 * dim - 1));
 
-
+	/* For testing */
 	// FILE *fp_test ;
 	// fp_test = fopen("T-matrix-csr.txt", "w") ;
 	// for(i=0; i<dim; ++i){
@@ -187,7 +189,7 @@ double lanczos(int *IA, int *JA, double *valA, double *q, int M, int dim)
 	eig = power_iteration(IT, JT, val, q_T, dim) ;
 
 	clock_t end = clock();
-	printf("time : %e\t error: %e\n", (end - start) / (double)CLOCKS_PER_SEC, eig_true - eig);
+	printf("Lanczos time : %e\t error: %e\n", (end - start) / (double)CLOCKS_PER_SEC, eig_true - eig);
 
 
 	free(w);
@@ -195,7 +197,6 @@ double lanczos(int *IA, int *JA, double *valA, double *q, int M, int dim)
 	free(v_new);
 	free(product1);
 	free(product2);
-
 	free(q_T);
 
 	return eig;
